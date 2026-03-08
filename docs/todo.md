@@ -6,6 +6,7 @@
 
 ## Radio
 * Handle dead stream links gracefully (e.g. worldwidefm.out.airtime.pro)
+* Cycling to the end of the playlist gets to no stream so plays nothing, should cycle around
 * Database of publicly available radio stations
 * Ability to add custom stream links
 * Setting and selecting presets
