@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from mpd_client import get_client
 
 STATIONS_FILE = Path("/data/stations.json")
+DEFAULT_STATIONS_FILE = Path("default_stations.json")
 
 app = FastAPI(title="IR10 Radio")
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -38,15 +39,9 @@ def sync_to_mpd(client, stations):
         client.add(s["url"])
 
 
-def seed_stations_from_mpd(client):
-    """On first run, populate stations.json from MPD's loaded playlist."""
-    client.clear()
-    client.load("stations")
-    playlist = client.playlistinfo()
-    stations = [
-        {"name": track.get("title", track["file"]), "url": track["file"]}
-        for track in playlist
-    ]
+def seed_default_stations():
+    """On first run, copy default stations into the data volume."""
+    stations = json.loads(DEFAULT_STATIONS_FILE.read_text())
     write_stations(stations)
     return stations
 
@@ -62,10 +57,10 @@ def health():
 
 
 @app.get("/stations")
-def list_stations(client: MPDClient = Depends(get_client)):
+def list_stations():
     stations = read_stations()
     if not stations:
-        stations = seed_stations_from_mpd(client)
+        stations = seed_default_stations()
     return [
         {"index": i, "name": s["name"]} for i, s in enumerate(stations)
     ]
@@ -115,9 +110,9 @@ def now_playing(client: MPDClient = Depends(get_client)):
 
     if state == "play":
         song = client.currentsong()
-        return {
-            "state": state,
-            "station": song.get("title", song.get("file", "Unknown")),
-        }
+        url = song.get("file", "")
+        stations = read_stations()
+        name = next((s["name"] for s in stations if s["url"] == url), url)
+        return {"state": state, "station": name}
 
     return {"state": state, "station": None}

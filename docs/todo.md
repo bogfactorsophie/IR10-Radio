@@ -6,11 +6,15 @@
 
 ## Radio
 * Handle dead stream links gracefully (e.g. worldwidefm.out.airtime.pro)
+* Improve latency when you press stop
 * Cycling to the end of the playlist gets to no stream so plays nothing, should cycle around
 * Database of publicly available radio stations
 * Ability to add custom stream links
 * Setting and selecting presets
 * Select display style (VIU meter, waveform view, frequency view)
+* takes a long time for streamer service to stop
+* streamer webpage needs to be reloaded on service restart
+* boot playing the last played station or the one selected by the switch
 
 ## Code, Licensing, Version Control
 * Github actions build

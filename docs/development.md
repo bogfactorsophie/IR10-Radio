@@ -76,7 +76,9 @@ curl http://localhost/now-playing
 curl -X POST http://localhost/stop
 ```
 
-Listen to the stream at `http://localhost:8000` in a browser or media player to verify playback.
+View the web interface at `http://localhost` in a browser, play/stop you can add/remove and view a list of stations
+
+Listen to the stream at `http://localhost:8000` in a separate browser tab or media player to verify playback.
 
 ## Deploy to Pi
 
