@@ -1,6 +1,6 @@
 FROM python:3.12-alpine
 
-RUN apk add --no-cache gcc musl-dev linux-headers
+RUN apk add --no-cache gcc musl-dev linux-headers zlib-dev jpeg-dev freetype-dev
 
 WORKDIR /app
 
