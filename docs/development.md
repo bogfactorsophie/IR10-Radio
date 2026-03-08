@@ -64,6 +64,20 @@ Listen to the HTTP stream (works on dev environments where ALSA is unavailable):
 http://localhost:8000
 ```
 
+## Test Web API
+
+With the streamer and web services running (`docker compose up streamer web`):
+
+```sh
+curl http://localhost/health
+curl http://localhost/stations
+curl -X POST http://localhost/play/0
+curl http://localhost/now-playing
+curl -X POST http://localhost/stop
+```
+
+Listen to the stream at `http://localhost:8000` in a browser or media player to verify playback.
+
 ## Deploy to Pi
 
 The Pi Zero 2W runs 32-bit Raspbian (`linux/arm/v7`). Images must be cross-built from x86 using `docker buildx`. Run from PowerShell on Windows:

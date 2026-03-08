@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IR10 Radio</title>
+</head>
+<body>
+    <h1>IR10 Radio</h1>
+
+    <section id="now-playing">
+        <h2>Now Playing</h2>
+        <p id="status">Loading...</p>
+        <button onclick="stop()">Stop</button>
+    </section>
+
+    <section>
+        <h2>Stations</h2>
+        <ul id="station-list"></ul>
+    </section>
+
+    <section>
+        <h2>Add Station</h2>
+        <form onsubmit="addStation(event)">
+            <input type="text" id="add-name" placeholder="Station name" required>
+            <input type="url" id="add-url" placeholder="Stream URL" required>
+            <button type="submit">Add</button>
+        </form>
+    </section>
+
+    <script>
+        async function loadStations() {
+            const res = await fetch("/stations");
+            const stations = await res.json();
+            const list = document.getElementById("station-list");
+            list.innerHTML = "";
+            stations.forEach(s => {
+                const li = document.createElement("li");
+                li.textContent = s.name + " ";
+
+                const playBtn = document.createElement("button");
+                playBtn.textContent = "Play";
+                playBtn.onclick = () => play(s.index);
+                li.appendChild(playBtn);
+
+                const removeBtn = document.createElement("button");
+                removeBtn.textContent = "Remove";
+                removeBtn.onclick = () => removeStation(s.index);
+                li.appendChild(removeBtn);
+
+                list.appendChild(li);
+            });
+        }
+
+        async function loadNowPlaying() {
+            const res = await fetch("/now-playing");
+            const data = await res.json();
+            const el = document.getElementById("status");
+            if (data.state === "play") {
+                el.textContent = data.station;
+            } else {
+                el.textContent = "Stopped";
+            }
+        }
+
+        async function play(index) {
+            await fetch(`/play/${index}`, { method: "POST" });
+            loadNowPlaying();
+        }
+
+        async function stop() {
+            await fetch("/stop", { method: "POST" });
+            loadNowPlaying();
+        }
+
+        async function addStation(e) {
+            e.preventDefault();
+            const name = document.getElementById("add-name").value;
+            const url = document.getElementById("add-url").value;
+            await fetch("/stations", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, url })
+            });
+            document.getElementById("add-name").value = "";
+            document.getElementById("add-url").value = "";
+            loadStations();
+        }
+
+        async function removeStation(index) {
+            await fetch(`/stations/${index}`, { method: "DELETE" });
+            loadNowPlaying();
+            loadStations();
+        }
+
+        loadStations();
+        loadNowPlaying();
+        setInterval(loadNowPlaying, 5000);
+    </script>
+</body>
+</html>
