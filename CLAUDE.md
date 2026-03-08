@@ -66,7 +66,7 @@ This could be automated with a shell script or simple Ansible process.
 
 ### Licensing
 
-An appropriate open source license suitable for redistribution for profit should be used.
+MIT License
 
 All open source packages used should take this license into consideration.
 
