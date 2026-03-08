@@ -22,6 +22,10 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+    volumes:
+      - web-data:/data
+    depends_on:
+      - streamer
     networks:
       - radio
 
@@ -45,6 +49,7 @@ services:
 
 volumes:
   streamer-data:
+  web-data:
 
 networks:
   radio:
