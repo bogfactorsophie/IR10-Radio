@@ -1,0 +1,1 @@
+Inspired by Dieter Rams at Braun, and Sony design
