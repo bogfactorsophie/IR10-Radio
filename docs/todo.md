@@ -17,6 +17,7 @@
 * boot playing the last played station or the one selected by the switch
 * what to do when the stream is silent? static noise?
 * get metadata when unavailable e.g. https://ehfm.airtime.pro/api/live-info-v2
+* handle xml metadata from station
 
 ## Code, Licensing, Version Control
 * Github actions build
