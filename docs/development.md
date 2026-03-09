@@ -2,12 +2,9 @@
 
 ## Dependencies
 
-### Windows (host)
+### WSL2 (Ubuntu)
 
-* Docker Desktop — runs the Docker engine, provides `docker` and `docker compose` CLI, includes `docker buildx` for ARM cross-builds
-
-### WSL2
-
+* Docker Engine — provides `docker`, `docker compose`, and `docker buildx` for ARM cross-builds: [Install Docker Engine on Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
 * `mpc` — MPD client for controlling the streamer: `sudo apt install mpc`
 
 ## Build
@@ -82,21 +79,21 @@ Listen to the stream at `http://localhost:8000` in a separate browser tab or med
 
 ## Deploy to Pi
 
-The Pi Zero 2W runs 32-bit Raspbian (`linux/arm/v7`). Images must be cross-built from x86 using `docker buildx`. Run from PowerShell on Windows:
+The Pi Zero 2W runs 32-bit Raspbian (`linux/arm/v7`). Images must be cross-built from x86 using `docker buildx`. Run from WSL2:
 
 Deploy all services:
 
-```powershell
-.\deploy.ps1 -PiHost radio.local
+```sh
+./deploy.sh radio.local
 ```
 
 Deploy specific services:
 
-```powershell
-.\deploy.ps1 -PiHost radio.local -Services streamer,web
+```sh
+./deploy.sh radio.local streamer web
 ```
 
-The script cross-builds for ARM, transfers images over SSH, copies `docker-compose.yml`, and restarts services. Requires SSH access to `pi@<host>` (Windows OpenSSH client).
+The script cross-builds for ARM, transfers images over SSH, copies `docker-compose.yml`, and restarts services. Requires SSH access to `pi@<host>`.
 
 ## Logs
 
