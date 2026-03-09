@@ -2,12 +2,7 @@
 
 ## Dependencies
 
-### Windows (host)
-
-* Docker Desktop — runs the Docker engine, provides `docker` and `docker compose` CLI, includes `docker buildx` for ARM cross-builds
-
-### WSL2
-
+* Docker engine — provides `docker` and `docker compose` CLI, includes `docker buildx` for ARM cross-builds
 * `mpc` — MPD client for controlling the streamer: `sudo apt install mpc`
 
 ## Build

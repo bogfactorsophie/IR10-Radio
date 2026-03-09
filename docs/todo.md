@@ -15,6 +15,8 @@
 * takes a long time for streamer service to stop
 * streamer webpage needs to be reloaded on service restart
 * boot playing the last played station or the one selected by the switch
+* what to do when the stream is silent? static noise?
+* get metadata when unavailable e.g. https://ehfm.airtime.pro/api/live-info-v2
 
 ## Code, Licensing, Version Control
 * Github actions build

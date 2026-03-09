@@ -23,6 +23,12 @@
             font-family: inherit;
             font-size: inherit;
         }
+        #station-image {
+            width: 96px;
+            height: 96px;
+            object-fit: contain;
+            background: #ccc;
+        }
     </style>
 </head>
 <body>
@@ -30,6 +36,7 @@
 
     <section id="now-playing">
         <h2>Now Playing</h2>
+        <img id="station-image" src="" alt="">
         <p id="status">Loading...</p>
         <button onclick="stop()">Stop</button>
     </section>
@@ -40,7 +47,16 @@
     </section>
 
     <section>
-        <h2>Add Station</h2>
+        <h2>Search Stations</h2>
+        <form onsubmit="searchStations(event)">
+            <input type="text" id="search-query" placeholder="Search by station name" required>
+            <button type="submit">Search</button>
+        </form>
+        <ul id="search-results"></ul>
+    </section>
+
+    <section>
+        <h2>Add Station by URL</h2>
         <form onsubmit="addStation(event)">
             <input type="text" id="add-name" placeholder="Station name" required>
             <input type="url" id="add-url" placeholder="Stream URL" required>
@@ -57,6 +73,16 @@
             stations.forEach(s => {
                 const li = document.createElement("li");
                 li.textContent = s.name + " ";
+
+                const upBtn = document.createElement("button");
+                upBtn.textContent = "\u25B2";
+                upBtn.onclick = () => moveStation(s.index, "up");
+                li.appendChild(upBtn);
+
+                const downBtn = document.createElement("button");
+                downBtn.textContent = "\u25BC";
+                downBtn.onclick = () => moveStation(s.index, "down");
+                li.appendChild(downBtn);
 
                 const playBtn = document.createElement("button");
                 playBtn.textContent = "Play";
@@ -76,10 +102,13 @@
             const res = await fetch("/now-playing");
             const data = await res.json();
             const el = document.getElementById("status");
+            const img = document.getElementById("station-image");
             if (data.state === "play") {
-                el.textContent = data.station;
+                el.textContent = data.show ? `${data.station} — ${data.show}` : data.station;
+                img.src = data.image || "";
             } else {
                 el.textContent = "Stopped";
+                img.src = "";
             }
         }
 
@@ -104,6 +133,46 @@
             });
             document.getElementById("add-name").value = "";
             document.getElementById("add-url").value = "";
+            loadStations();
+        }
+
+        async function searchStations(e) {
+            e.preventDefault();
+            const query = document.getElementById("search-query").value;
+            const list = document.getElementById("search-results");
+            list.innerHTML = "<li>Searching...</li>";
+            const res = await fetch(`/search?q=${encodeURIComponent(query)}`);
+            const results = await res.json();
+            list.innerHTML = "";
+            if (results.length === 0) {
+                list.innerHTML = "<li>No stations found</li>";
+                return;
+            }
+            results.forEach(s => {
+                const li = document.createElement("li");
+                let label = s.name;
+                const details = [s.country, s.tags, s.bitrate ? `${s.bitrate}kbps` : ""].filter(Boolean);
+                if (details.length) label += ` (${details.join(" · ")})`;
+                li.textContent = label + " ";
+                const addBtn = document.createElement("button");
+                addBtn.textContent = "Add";
+                addBtn.onclick = async () => {
+                    await fetch("/stations", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ name: s.name, url: s.url, image: s.image })
+                    });
+                    addBtn.textContent = "Added";
+                    addBtn.disabled = true;
+                    loadStations();
+                };
+                li.appendChild(addBtn);
+                list.appendChild(li);
+            });
+        }
+
+        async function moveStation(index, direction) {
+            await fetch(`/stations/${index}/move/${direction}`, { method: "POST" });
             loadStations();
         }
 
