@@ -1,5 +1,5 @@
 [
-  {"name": "EHFM", "url": "https://ehfm.out.airtime.pro/ehfm_a"},
-  {"name": "NTS Radio 1", "url": "https://stream-relay-geo.ntslive.net/stream"},
-  {"name": "NTS Radio 2", "url": "https://stream-relay-geo.ntslive.net/stream2"}
+  {"name": "EHFM", "url": "https://ehfm.out.airtime.pro/ehfm_a", "image": "https://static.mytuner.mobi/media/tvos_radios/lbvlm87gg7bp.png"},
+  {"name": "NTS Radio 1", "url": "https://stream-relay-geo.ntslive.net/stream", "image": "https://www.nts.live/favicon.ico"},
+  {"name": "NTS Radio 2", "url": "https://stream-relay-geo.ntslive.net/stream2", "image": "https://www.nts.live/apple-touch-icon.png?v=47re43rrzb"}
 ]
