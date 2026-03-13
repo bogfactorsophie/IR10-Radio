@@ -2,8 +2,6 @@
 
 ## Dependencies
 
-### WSL2 (Ubuntu)
-
 * Docker Engine — provides `docker`, `docker compose`, and `docker buildx` for ARM cross-builds: [Install Docker Engine on Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
 * `mpc` — MPD client for controlling the streamer: `sudo apt install mpc`
 
