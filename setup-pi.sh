@@ -44,8 +44,9 @@ echo "==> Installing Avahi for mDNS (radio.local)"
 apt-get install -y avahi-daemon
 
 echo "==> Setting hostname to 'radio'"
-hostnamectl set-hostname radio
+echo "radio" > /etc/hostname
 sed -i 's/127\.0\.1\.1.*/127.0.1.1\tradio/' /etc/hosts
+hostname radio
 
 echo ""
 echo "==> Setup complete. A reboot is required for hardware changes to take effect."

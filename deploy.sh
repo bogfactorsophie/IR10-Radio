@@ -51,4 +51,12 @@ ssh "${PI_HOST}" "mkdir -p ~/radio"
 scp docker-compose.yml "${PI_HOST}:~/radio/docker-compose.yml"
 ssh "${PI_HOST}" "cd ~/radio && docker compose up -d ${SERVICES[*]}"
 
+# Basic smoke test
+echo "==> Checking web endpoint..."
+if ssh "${PI_HOST}" "curl -sf http://localhost/health > /dev/null"; then
+    echo "    Web service is up"
+else
+    echo "    WARNING: Web service not responding on /health"
+fi
+
 echo "==> Deploy complete"
