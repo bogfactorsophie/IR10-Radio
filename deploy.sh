@@ -20,7 +20,7 @@ fi
 PI_HOST="${1:?Usage: ./deploy.sh <pi-host> [service ...]}"
 shift
 if [[ $# -eq 0 ]]; then
-    SERVICES=(streamer web display io)
+    SERVICES=(streamer web)
 else
     SERVICES=("$@")
 fi
@@ -42,12 +42,13 @@ done
 for svc in "${SERVICES[@]}"; do
     image="${PROJECT}-${svc}:latest"
     echo "==> Sending $image to $PI_HOST"
-    docker save "$image" | ssh "pi@${PI_HOST}" "docker load"
+    docker save "$image" | ssh "${PI_HOST}" "docker load"
 done
 
 # Copy compose file and restart services on the Pi
 echo "==> Restarting services on $PI_HOST"
-scp docker-compose.yml "pi@${PI_HOST}:/opt/radio/docker-compose.yml"
-ssh "pi@${PI_HOST}" "cd /opt/radio && docker compose up -d ${SERVICES[*]}"
+ssh "${PI_HOST}" "mkdir -p ~/radio"
+scp docker-compose.yml "${PI_HOST}:~/radio/docker-compose.yml"
+ssh "${PI_HOST}" "cd ~/radio && docker compose up -d ${SERVICES[*]}"
 
 echo "==> Deploy complete"

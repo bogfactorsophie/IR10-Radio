@@ -5,7 +5,7 @@
 set -euo pipefail
 
 echo "==> Updating system packages"
-apt-get update && apt-get upgrade -y
+apt-get update
 
 # --- I2S audio (Pimoroni Audio Amp SHIM / MAX98357A) ---
 echo "==> Enabling I2S audio overlay"
@@ -30,13 +30,22 @@ raspi-config nonint do_spi 0
 echo "==> Installing Docker"
 if ! command -v docker &>/dev/null; then
     curl -fsSL https://get.docker.com | sh
+    apt-get install -y docker-compose-plugin
     echo "    Docker installed"
 else
     echo "    Docker already installed"
 fi
 
 # Let the default 'pi' user run docker without sudo
-usermod -aG docker pi 2>/dev/null || true
+usermod -aG docker "$(logname)" 2>/dev/null || true
+
+# --- mDNS (Avahi) ---
+echo "==> Installing Avahi for mDNS (radio.local)"
+apt-get install -y avahi-daemon
+
+echo "==> Setting hostname to 'radio'"
+hostnamectl set-hostname radio
+sed -i 's/127\.0\.1\.1.*/127.0.1.1\tradio/' /etc/hosts
 
 echo ""
 echo "==> Setup complete. A reboot is required for hardware changes to take effect."
