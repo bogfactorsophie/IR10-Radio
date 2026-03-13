@@ -37,6 +37,12 @@
             font-family: inherit;
             font-size: inherit;
         }
+        #volume-control {
+            margin-top: 1rem;
+        }
+        #volume-slider {
+            width: 80%;
+        }
         #station-image {
             width: 96px;
             height: 96px;
@@ -54,6 +60,10 @@
                 <img id="station-image" src="" alt="">
                 <p id="status">Loading...</p>
                 <button onclick="stop()">Stop</button>
+                <div id="volume-control">
+                    <label for="volume-slider">Volume: <span id="volume-value">50</span>%</label><br>
+                    <input type="range" id="volume-slider" min="0" max="100" value="50" oninput="setVolume(this.value)">
+                </div>
             </section>
         </div>
 
@@ -129,6 +139,8 @@
             if (lastSearchResults) renderSearchResults(lastSearchResults);
         }
 
+        let volumeTimer = null;
+
         async function loadNowPlaying() {
             const res = await fetch("/now-playing");
             const data = await res.json();
@@ -141,6 +153,23 @@
                 el.textContent = "Stopped";
                 img.src = "";
             }
+            if (data.volume !== undefined && !volumeTimer) {
+                document.getElementById("volume-slider").value = data.volume;
+                document.getElementById("volume-value").textContent = data.volume;
+            }
+        }
+
+        function setVolume(val) {
+            document.getElementById("volume-value").textContent = val;
+            clearTimeout(volumeTimer);
+            volumeTimer = setTimeout(async () => {
+                await fetch("/volume", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ volume: parseInt(val) })
+                });
+                volumeTimer = null;
+            }, 150);
         }
 
         async function play(index) {

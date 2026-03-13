@@ -3,7 +3,7 @@ import urllib.request
 import urllib.parse
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query, Body
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from mpd import MPDClient
@@ -14,6 +14,7 @@ from mpd_client import get_client
 RADIO_BROWSER_API = "https://de1.api.radio-browser.info"
 
 MAX_PRESETS = 6
+DEFAULT_VOLUME = 50
 STATIONS_FILE = Path("/data/stations.json")
 DEFAULT_STATIONS_FILE = Path("default_stations.json")
 
@@ -32,6 +33,7 @@ def startup_sync():
         if not stations:
             stations = seed_default_stations()
         sync_to_mpd(client, stations)
+        client.setvol(DEFAULT_VOLUME)
     finally:
         try:
             next(client_gen)
@@ -199,10 +201,24 @@ def stop(client: MPDClient = Depends(get_client)):
     return {"status": "stopped"}
 
 
+@app.get("/volume")
+def get_volume(client: MPDClient = Depends(get_client)):
+    status = client.status()
+    return {"volume": int(status.get("volume", 0))}
+
+
+@app.post("/volume")
+def set_volume(volume: int = Body(embed=True), client: MPDClient = Depends(get_client)):
+    volume = max(0, min(100, volume))
+    client.setvol(volume)
+    return {"volume": volume}
+
+
 @app.get("/now-playing")
 def now_playing(client: MPDClient = Depends(get_client)):
     status = client.status()
     state = status.get("state", "unknown")
+    volume = int(status.get("volume", 0))
 
     if state == "play":
         song = client.currentsong()
@@ -214,6 +230,6 @@ def now_playing(client: MPDClient = Depends(get_client)):
         show = song.get("title", "").strip(" -")
         if len(show) > 100:
             show = ""
-        return {"state": state, "station": name, "show": show or None, "image": image or None}
+        return {"state": state, "station": name, "show": show or None, "image": image or None, "volume": volume}
 
-    return {"state": state, "station": None}
+    return {"state": state, "station": None, "volume": volume}
