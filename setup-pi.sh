@@ -22,10 +22,6 @@ if ! grep -q "^dtparam=audio=off" /boot/config.txt; then
     echo "    Disabled onboard audio"
 fi
 
-# --- SPI (Waveshare OLED HAT) ---
-echo "==> Enabling SPI"
-raspi-config nonint do_spi 0
-
 # --- Docker ---
 echo "==> Installing Docker"
 if ! command -v docker &>/dev/null; then

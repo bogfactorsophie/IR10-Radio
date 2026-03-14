@@ -29,15 +29,6 @@ services:
     networks:
       - radio
 
-  display:
-    build: ./display
-    restart: unless-stopped
-    privileged: true
-    devices:
-      - /dev/spidev0.0:/dev/spidev0.0
-    networks:
-      - radio
-
   io:
     build: ./io
     restart: unless-stopped
