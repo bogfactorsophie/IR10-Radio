@@ -1,7 +1,7 @@
 import json
-import urllib.request
-import urllib.parse
 from pathlib import Path
+
+import httpx
 
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
@@ -79,18 +79,20 @@ def seed_default_stations():
 
 
 @app.get("/search")
-def search_stations(q: str = Query(min_length=1, max_length=100)):
-    params = urllib.parse.urlencode({
+async def search_stations(q: str = Query(min_length=1, max_length=100)):
+    params = {
         "name": q,
         "limit": 20,
         "hidebroken": "true",
         "order": "clickcount",
         "reverse": "true",
-    })
-    url = f"{RADIO_BROWSER_API}/json/stations/search?{params}"
-    req = urllib.request.Request(url, headers={"User-Agent": "IR10Radio/1.0"})
-    with urllib.request.urlopen(req, timeout=10) as resp:
-        data = json.loads(resp.read())
+    }
+    url = f"{RADIO_BROWSER_API}/json/stations/search"
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            url, params=params, headers={"User-Agent": "IR10Radio/1.0"}, timeout=5
+        )
+        data = resp.json()
     return [
         {
             "name": s["name"],
@@ -188,7 +190,6 @@ def play_station(station_index: int, client: MPDClient = Depends(get_client)):
     if station_index < 0 or station_index >= len(stations):
         raise HTTPException(status_code=404, detail="Station not found")
 
-    sync_to_mpd(client, stations)
     client.play(station_index)
     return {"playing": stations[station_index]["name"]}
 
