@@ -26,6 +26,9 @@ services:
       - web-data:/data
     depends_on:
       - streamer
+    environment:
+      - DEFAULT_DIAL_POSITION=${DEFAULT_DIAL_POSITION:-}
+      - DEFAULT_VOLUME=${DEFAULT_VOLUME:-}
     networks:
       - radio
 
@@ -35,6 +38,10 @@ services:
     privileged: true
     devices:
       - /dev/gpiomem:/dev/gpiomem
+    depends_on:
+      - web
+    environment:
+      - DEFAULT_DIAL_POSITION=${DEFAULT_DIAL_POSITION:-}
     networks:
       - radio
 
