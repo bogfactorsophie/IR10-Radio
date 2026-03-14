@@ -82,16 +82,22 @@ The Pi Zero 2W runs 32-bit Raspbian (`linux/arm/v7`). Images must be cross-built
 Deploy all services:
 
 ```sh
-./deploy.sh radio.local
+./deploy.sh radio
 ```
 
 Deploy specific services:
 
 ```sh
-./deploy.sh radio.local streamer web
+./deploy.sh radio streamer web
 ```
 
-The script cross-builds for ARM, transfers images over SSH, copies `docker-compose.yml`, and restarts services. Requires SSH access to `pi@<host>`.
+The script cross-builds for ARM, transfers images over SSH, copies `docker-compose.yml`, and restarts services.
+
+## SSH to Pi
+
+```sh
+ssh radio
+```
 
 ## Logs
 
