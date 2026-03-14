@@ -33,7 +33,7 @@
         li {
             margin: 0.5rem 0;
         }
-        button, input {
+        button, input, select {
             font-family: inherit;
             font-size: inherit;
         }
@@ -53,14 +53,19 @@
                 <h2>Now Playing</h2>
                 <img id="station-image" src="" alt="">
                 <p id="status">Loading...</p>
-                <button onclick="stop()">Stop</button>
+                <button onclick="goStandby()">Standby</button>
+            </section>
+
+            <section>
+                <h2>Dial</h2>
+                <ul id="dial-list"></ul>
             </section>
         </div>
 
         <div class="col-right">
             <section>
-                <h2>Stations <span id="station-count"></span></h2>
-                <ul id="station-list"></ul>
+                <h2>Library</h2>
+                <ul id="library-list"></ul>
             </section>
 
             <section>
@@ -78,161 +83,12 @@
                 <form onsubmit="addStation(event)">
                     <input type="text" id="add-name" placeholder="Station name" required>
                     <input type="url" id="add-url" placeholder="Stream URL" required>
-                    <button type="submit" id="add-url-btn">Add</button>
+                    <button type="submit">Add</button>
                 </form>
             </section>
         </div>
     </div>
 
-    <script>
-        const MAX_PRESETS = 6;
-        let stationCount = 0;
-        let stationUrls = new Set();
-        let lastSearchResults = null;
-
-        async function loadStations() {
-            const res = await fetch("/stations");
-            const stations = await res.json();
-            stationCount = stations.length;
-            stationUrls = new Set(stations.map(s => s.url));
-            document.getElementById("station-count").textContent = `(${stationCount}/${MAX_PRESETS})`;
-            const addUrlBtn = document.getElementById("add-url-btn");
-            if (addUrlBtn) addUrlBtn.disabled = stationCount >= MAX_PRESETS;
-            const list = document.getElementById("station-list");
-            list.innerHTML = "";
-            stations.forEach(s => {
-                const li = document.createElement("li");
-                li.textContent = s.name + " ";
-
-                const upBtn = document.createElement("button");
-                upBtn.textContent = "\u25B2";
-                upBtn.onclick = () => moveStation(s.index, "up");
-                li.appendChild(upBtn);
-
-                const downBtn = document.createElement("button");
-                downBtn.textContent = "\u25BC";
-                downBtn.onclick = () => moveStation(s.index, "down");
-                li.appendChild(downBtn);
-
-                const playBtn = document.createElement("button");
-                playBtn.textContent = "Play";
-                playBtn.onclick = () => play(s.index);
-                li.appendChild(playBtn);
-
-                const removeBtn = document.createElement("button");
-                removeBtn.textContent = "Remove";
-                removeBtn.onclick = () => removeStation(s.index);
-                li.appendChild(removeBtn);
-
-                list.appendChild(li);
-            });
-            if (lastSearchResults) renderSearchResults(lastSearchResults);
-        }
-
-        async function loadNowPlaying() {
-            const res = await fetch("/now-playing");
-            const data = await res.json();
-            const el = document.getElementById("status");
-            const img = document.getElementById("station-image");
-            if (data.state === "play") {
-                el.textContent = data.show ? `${data.station} — ${data.show}` : data.station;
-                img.src = data.image || "";
-            } else {
-                el.textContent = "Stopped";
-                img.src = "";
-            }
-        }
-
-        async function play(index) {
-            await fetch(`/play/${index}`, { method: "POST" });
-            loadNowPlaying();
-        }
-
-        async function stop() {
-            await fetch("/stop", { method: "POST" });
-            loadNowPlaying();
-        }
-
-        function toggleAddUrl() {
-            const section = document.getElementById("add-url-section");
-            section.style.display = section.style.display === "none" ? "" : "none";
-        }
-
-        async function addStation(e) {
-            e.preventDefault();
-            const name = document.getElementById("add-name").value;
-            const url = document.getElementById("add-url").value;
-            await fetch("/stations", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, url })
-            });
-            document.getElementById("add-name").value = "";
-            document.getElementById("add-url").value = "";
-            loadStations();
-        }
-
-        function renderSearchResults(results) {
-            const list = document.getElementById("search-results");
-            list.innerHTML = "";
-            if (results.length === 0) {
-                list.innerHTML = "<li>No stations found</li>";
-                return;
-            }
-            results.forEach(s => {
-                const li = document.createElement("li");
-                let label = s.name;
-                const details = [s.country, s.tags, s.bitrate ? `${s.bitrate}kbps` : ""].filter(Boolean);
-                if (details.length) label += ` (${details.join(" · ")})`;
-                li.textContent = label + " ";
-                const addBtn = document.createElement("button");
-                if (stationUrls.has(s.url)) {
-                    addBtn.textContent = "Added";
-                    addBtn.disabled = true;
-                } else if (stationCount >= MAX_PRESETS) {
-                    addBtn.disabled = true;
-                } else {
-                    addBtn.textContent = "Add";
-                }
-                addBtn.onclick = async () => {
-                    await fetch("/stations", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ name: s.name, url: s.url, image: s.image })
-                    });
-                    addBtn.textContent = "Added";
-                    addBtn.disabled = true;
-                    stationCount++;
-                    loadStations();
-                };
-                li.appendChild(addBtn);
-                list.appendChild(li);
-            });
-        }
-
-        async function searchStations(e) {
-            e.preventDefault();
-            const query = document.getElementById("search-query").value;
-            document.getElementById("search-results").innerHTML = "<li>Searching...</li>";
-            const res = await fetch(`/search?q=${encodeURIComponent(query)}`);
-            lastSearchResults = await res.json();
-            renderSearchResults(lastSearchResults);
-        }
-
-        async function moveStation(index, direction) {
-            await fetch(`/stations/${index}/move/${direction}`, { method: "POST" });
-            loadStations();
-        }
-
-        async function removeStation(index) {
-            await fetch(`/stations/${index}`, { method: "DELETE" });
-            loadNowPlaying();
-            loadStations();
-        }
-
-        loadStations();
-        loadNowPlaying();
-        setInterval(loadNowPlaying, 10000);
-    </script>
+    <script src="/static/app.js"></script>
 </body>
 </html>
