@@ -27,7 +27,7 @@ services:
     depends_on:
       - streamer
     environment:
-      - DEFAULT_DIAL_POSITION=${DEFAULT_DIAL_POSITION:-}
+      - DEFAULT_DIAL_POSITION=${DEFAULT_DIAL_POSITION:-1}
       - DEFAULT_VOLUME=${DEFAULT_VOLUME:-}
     networks:
       - radio
@@ -41,7 +41,7 @@ services:
     depends_on:
       - web
     environment:
-      - DEFAULT_DIAL_POSITION=${DEFAULT_DIAL_POSITION:-}
+      - DEFAULT_DIAL_POSITION=${DEFAULT_DIAL_POSITION:-1}
     networks:
       - radio
 

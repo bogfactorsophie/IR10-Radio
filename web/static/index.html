@@ -3,92 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IR10 Radio</title>
-    <style>
-        body {
-            font-family: Helvetica, Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 2rem 1rem;
-        }
-        .columns {
-            display: flex;
-            gap: 2rem;
-            text-align: center;
-        }
-        .col-left {
-            flex: 0 0 auto;
-        }
-        .col-right {
-            flex: 1;
-            text-align: left;
-            padding-top: 4rem;
-            border-left: 1px dashed #ccc;
-            padding-left: 2rem;
-        }
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-        li {
-            margin: 0.5rem 0;
-        }
-        button, input, select {
-            font-family: inherit;
-            font-size: inherit;
-        }
-        #station-image {
-            width: 96px;
-            height: 96px;
-            object-fit: contain;
-            background: #ccc;
-        }
-    </style>
+    <title>TR10</title>
+    <link rel="stylesheet" href="/static/style.css?v=11">
 </head>
 <body>
-    <div class="columns">
-        <div class="col-left">
-            <h1>IR10 Radio</h1>
-            <section id="now-playing">
-                <h2>Now Playing</h2>
-                <img id="station-image" src="" alt="">
-                <p id="status">Loading...</p>
-                <button onclick="goStandby()">Standby</button>
-            </section>
+    <header>
+        <span class="brand">TR10</span>
+        <button class="listen-btn" id="listen-btn" onclick="toggleListen()">listen here</button>
+    </header>
 
-            <section>
-                <h2>Dial</h2>
-                <ul id="dial-list"></ul>
-            </section>
-        </div>
+    <main>
+        <section class="dial-section">
+            <div class="dial-container" id="dial-container">
+                <div class="dial-face">
+                    <div class="dial-pointer" id="dial-pointer"></div>
+                    <div class="dial-center"></div>
+                </div>
+            </div>
+            <div class="status" id="status-bar">
+                <span class="status-station" id="status-station"></span>
+                <span class="status-show" id="status-show"></span>
+            </div>
+        </section>
 
-        <div class="col-right">
-            <section>
-                <h2>Library</h2>
-                <ul id="library-list"></ul>
-            </section>
+        <section class="library-section">
+            <h2>library</h2>
+            <div class="library-grid" id="library-list"></div>
 
-            <section>
-                <h2>Add Stations</h2>
-                <form onsubmit="searchStations(event)">
-                    <input type="text" id="search-query" placeholder="Search by station name" required>
-                    <button type="submit">Search</button>
-                    <button type="button" onclick="toggleAddUrl()">Advanced</button>
+            <div class="search-section">
+                <input type="text" id="search-query" placeholder="search stations"
+                       maxlength="100">
+                <div class="search-results" id="search-results"></div>
+            </div>
+
+            <details class="add-section">
+                <summary>add by url</summary>
+                <form id="add-url-form">
+                    <input type="text" id="add-name" placeholder="station name" required>
+                    <input type="url" id="add-url" placeholder="stream url" required>
+                    <button type="submit">add</button>
                 </form>
-                <ul id="search-results"></ul>
-            </section>
+            </details>
+        </section>
+    </main>
 
-            <section id="add-url-section" style="display:none">
-                <h3>Add Station by URL</h3>
-                <form onsubmit="addStation(event)">
-                    <input type="text" id="add-name" placeholder="Station name" required>
-                    <input type="url" id="add-url" placeholder="Stream URL" required>
-                    <button type="submit">Add</button>
-                </form>
-            </section>
-        </div>
-    </div>
-
-    <script src="/static/app.js"></script>
+    <script src="/static/app.js?v=11"></script>
 </body>
 </html>

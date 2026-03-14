@@ -214,7 +214,9 @@ def get_dial():
 
 
 @app.put("/dial/{position}")
-def assign_dial(position: int, body: DialAssign):
+def assign_dial(
+    position: int, body: DialAssign, client: MPDClient = Depends(get_client)
+):
     if position < 1 or position > DIAL_SLOTS:
         raise HTTPException(status_code=400, detail="Position must be 1-11")
     station = get_station_by_id(body.station_id)
@@ -223,16 +225,20 @@ def assign_dial(position: int, body: DialAssign):
     dial = read_dial()
     dial[str(position)] = body.station_id
     write_dial(dial)
+    if position == current_dial_position:
+        _play_dial_position(client, position)
     return {"status": "assigned", "position": position, "station": station}
 
 
 @app.delete("/dial/{position}")
-def clear_dial(position: int):
+def clear_dial(position: int, client: MPDClient = Depends(get_client)):
     if position < 1 or position > DIAL_SLOTS:
         raise HTTPException(status_code=400, detail="Position must be 1-11")
     dial = read_dial()
     dial[str(position)] = None
     write_dial(dial)
+    if position == current_dial_position:
+        _play_dial_position(client, position)
     return {"status": "cleared", "position": position}
 
 
