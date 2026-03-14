@@ -12,35 +12,16 @@
   - [Product page](https://shop.pimoroni.com/products/audio-amp-shim-3w-mono-amp)
 - **Compatible speaker** — any unpowered speaker with tinned wire ends (max 0.75mm² / 18AWG)
 
-## Display
-
-- **Waveshare 2.23inch OLED Display HAT** — 128×32 pixels, SSD1305 driver, SPI (default)
-  - Uses: GPIO 10 (MOSI), GPIO 11 (SCLK), GPIO 8 (CE0), GPIO 24 (DC), GPIO 25 (RST), 3.3V, GND
-  - Comes with RPi screws pack (2 pieces)
-  - [Product page](https://www.waveshare.com/2.23inch-oled-hat.htm)
-  - [Wiki](https://www.waveshare.com/wiki/2.23inch_OLED_HAT)
-
-## Connector
-
-- **GPIO Riser Header** — 2x20 pin, 2.54mm spacing, 5mm pin length
-  - Sits between the Audio Amp SHIM and the OLED HAT for clearance
-  - [Product page](https://thepihut.com/products/gpio-riser-header-for-raspberry-pi)
-
-## Pin Conflict Summary
+## Pin Usage
 
 | Board | Interface | GPIOs Used (BCM) |
 |---|---|---|
 | Audio Amp SHIM | I2S (PCM) | 18, 19, 21 |
-| Waveshare OLED HAT | SPI0 + GPIO | 8, 10, 11, 24, 25 |
-
-**No conflicts.** The two boards use entirely separate GPIO pins and peripheral buses.
 
 ## Physical Stack Order (bottom to top)
 
 1. Raspberry Pi Zero 2W
 2. Pimoroni Audio Amp SHIM (friction-fit onto GPIO pins)
-3. GPIO Riser Header (plugged over SHIM onto pins)
-4. Waveshare 2.23inch OLED HAT (plugged onto riser header)
 
 ## Software Configuration
 
@@ -48,11 +29,4 @@ Enable I2S audio by adding to `/boot/config.txt`:
 
 ```
 dtoverlay=hifiberry-dac
-```
-
-Enable SPI for the OLED display:
-
-```bash
-sudo raspi-config
-# Interfacing Options -> SPI -> Yes
 ```
