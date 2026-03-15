@@ -101,11 +101,21 @@ def migrate_from_stations():
 @app.on_event("startup")
 def startup_sync():
     global current_volume
+    import time
 
     migrate_from_stations()
 
-    client_gen = get_client()
-    client = next(client_gen)
+    # Wait for MPD to be ready
+    for attempt in range(30):
+        try:
+            client_gen = get_client()
+            client = next(client_gen)
+            break
+        except Exception:
+            time.sleep(1)
+    else:
+        return
+
     try:
         client.clear()
         client.setvol(current_volume)

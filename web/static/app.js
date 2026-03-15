@@ -7,12 +7,12 @@ var library = [];
 var libraryUrls = new Set();
 var dial = {};
 var radioStatus = {};
-var selectedStationId = null;
 
-// Drag state shared by HTML5 DnD and touch
-var dragData = null; // { stationId, sourcePosition }
-var touchDrag = null;
-var touchDragJustEnded = false;
+// Selection state: either a library station or a dial position
+var selection = null; // { stationId, sourcePosition } or null
+
+// Desktop drag state (HTML5 DnD only, not used on touch)
+var dragData = null;
 
 // --- API ---
 
@@ -59,6 +59,48 @@ function placeElement(el, angle, radius) {
     el.style.transform = "translate(-50%, -50%)";
 }
 
+// --- Selection ---
+
+function clearSelection() {
+    selection = null;
+    document.querySelectorAll(".library-item.selected")
+        .forEach(function (el) { el.classList.remove("selected"); });
+    document.querySelectorAll(".dial-thumb.selected")
+        .forEach(function (el) { el.classList.remove("selected"); });
+    updateHint("");
+}
+
+function selectLibraryStation(stationId) {
+    if (selection && !selection.sourcePosition && selection.stationId === stationId) {
+        clearSelection();
+        return;
+    }
+    clearSelection();
+    selection = { stationId: stationId, sourcePosition: null };
+    document.querySelectorAll(".library-item").forEach(function (el) {
+        el.classList.toggle("selected", el.dataset.stationId === stationId);
+    });
+    updateHint("tap a preset to assign");
+}
+
+function selectDialPosition(position, stationId) {
+    if (selection && selection.sourcePosition === position) {
+        clearSelection();
+        return;
+    }
+    clearSelection();
+    selection = { stationId: stationId, sourcePosition: position };
+    document.querySelectorAll(".dial-thumb").forEach(function (el) {
+        el.classList.toggle("selected", parseInt(el.dataset.position) === position);
+    });
+    updateHint("tap a preset to move, or tap again to clear");
+}
+
+function updateHint(text) {
+    var hint = document.getElementById("selection-hint");
+    hint.textContent = text;
+}
+
 // --- Dial rendering ---
 
 function renderDial() {
@@ -69,7 +111,6 @@ function renderDial() {
     for (var i = 0; i < POSITIONS; i++) {
         var angle = i * 30;
 
-        // Tick mark
         var tick = document.createElement("div");
         tick.className = "dial-tick";
         var tp = positionOnCircle(angle, DIAL_RADIUS);
@@ -79,13 +120,11 @@ function renderDial() {
         container.appendChild(tick);
 
         if (i === 0) {
-            // Standby: small muted orange dot instead of "0"
             var dot = document.createElement("div");
             dot.className = "standby-dot";
             placeElement(dot, angle, NUMBER_RADIUS);
             container.appendChild(dot);
         } else {
-            // Number label
             var num = document.createElement("div");
             num.className = "dial-number";
             if (radioStatus.dial_position === i) num.classList.add("active");
@@ -93,7 +132,6 @@ function renderDial() {
             num.textContent = String(i);
             container.appendChild(num);
 
-            // Thumbnail
             var thumb = createThumb(i, angle);
             container.appendChild(thumb);
         }
@@ -127,13 +165,31 @@ function createThumb(position, angle) {
             letter.textContent = station.name[0];
             thumb.appendChild(letter);
         }
-        thumb.title = station.name + " (click to clear)";
-        thumb.onclick = function () {
-            if (touchDragJustEnded) return;
-            clearPosition(position);
+        thumb.title = station.name;
+
+        // Tap: if something is selected, act on it; otherwise select this thumb
+        thumb.onclick = function (e) {
+            e.stopPropagation();
+            if (selection) {
+                if (selection.sourcePosition === position) {
+                    // Tapped the same selected thumb — clear it
+                    clearPosition(position);
+                    clearSelection();
+                } else if (selection.sourcePosition !== null) {
+                    // Moving from another dial position — swap
+                    moveStation(selection.sourcePosition, position, selection.stationId);
+                    clearSelection();
+                } else {
+                    // Assigning from library — replace
+                    assignStation(position, selection.stationId);
+                    clearSelection();
+                }
+            } else {
+                selectDialPosition(position, station.id);
+            }
         };
 
-        // Make assigned thumbs draggable (desktop)
+        // Desktop drag (HTML5 DnD)
         thumb.draggable = true;
         thumb.addEventListener("dragstart", function (e) {
             dragData = { stationId: station.id, sourcePosition: position };
@@ -144,18 +200,24 @@ function createThumb(position, angle) {
             thumb.classList.remove("dragging");
             dragData = null;
         });
-
-        // Touch drag for assigned thumbs
-        setupTouchDrag(thumb, station.id, position, station.name);
     } else {
         thumb.classList.add("empty");
-        thumb.onclick = function () {
-            if (touchDragJustEnded) return;
-            assignSelected(position);
+        thumb.onclick = function (e) {
+            e.stopPropagation();
+            if (selection) {
+                if (selection.sourcePosition !== null) {
+                    // Moving from dial to empty slot
+                    moveStation(selection.sourcePosition, position, selection.stationId);
+                } else {
+                    // Assigning from library
+                    assignStation(position, selection.stationId);
+                }
+                clearSelection();
+            }
         };
     }
 
-    // Drop target (accepts from library or other dial positions)
+    // Desktop drop target
     thumb.addEventListener("dragover", function (e) {
         e.preventDefault();
         thumb.classList.add("drop-target");
@@ -196,9 +258,7 @@ function updateStatus() {
         showEl.textContent = "";
     }
 
-    // Update active number highlight
     document.querySelectorAll(".dial-number").forEach(function (el, i) {
-        // Numbers start at position 1 (position 0 is the standby dot)
         el.classList.toggle("active", (i + 1) === radioStatus.dial_position);
     });
 }
@@ -211,9 +271,6 @@ async function assignStation(position, stationId) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ station_id: stationId })
     });
-    selectedStationId = null;
-    document.querySelectorAll(".library-item.selected")
-        .forEach(function (el) { el.classList.remove("selected"); });
     await loadDial();
 }
 
@@ -239,10 +296,6 @@ async function moveStation(fromPos, toPos, stationId) {
         });
     }
     await loadDial();
-}
-
-function assignSelected(position) {
-    if (selectedStationId) assignStation(position, selectedStationId);
 }
 
 // --- Library ---
@@ -280,17 +333,13 @@ function renderLibrary() {
         item.appendChild(remove);
 
         if (!isOnDial) {
-            // Only allow dragging/selecting for stations not already on dial
-            item.draggable = true;
-
-            item.onclick = function () {
-                if (touchDragJustEnded) return;
-                selectedStationId = selectedStationId === s.id ? null : s.id;
-                document.querySelectorAll(".library-item").forEach(function (el) {
-                    el.classList.toggle("selected", el.dataset.stationId === selectedStationId);
-                });
+            item.onclick = function (e) {
+                e.stopPropagation();
+                selectLibraryStation(s.id);
             };
 
+            // Desktop drag
+            item.draggable = true;
             item.addEventListener("dragstart", function (e) {
                 dragData = { stationId: s.id, sourcePosition: null };
                 e.dataTransfer.setData("text/plain", s.id);
@@ -300,8 +349,6 @@ function renderLibrary() {
                 item.classList.remove("dragging");
                 dragData = null;
             });
-
-            setupTouchDrag(item, s.id, null, s.name);
         }
 
         list.appendChild(item);
@@ -364,91 +411,6 @@ function renderSearchResults(results) {
     });
 }
 
-// --- Touch drag ---
-
-function setupTouchDrag(el, stationId, sourcePosition, label) {
-    el.addEventListener("touchstart", function (e) {
-        var touch = e.touches[0];
-        touchDrag = {
-            stationId: stationId,
-            sourcePosition: sourcePosition,
-            label: label,
-            startX: touch.clientX,
-            startY: touch.clientY,
-            active: false,
-            clone: null,
-            currentTarget: null
-        };
-    }, { passive: true });
-}
-
-document.addEventListener("touchmove", function (e) {
-    if (!touchDrag) return;
-    var touch = e.touches[0];
-    var dx = touch.clientX - touchDrag.startX;
-    var dy = touch.clientY - touchDrag.startY;
-
-    if (!touchDrag.active) {
-        if (Math.abs(dx) + Math.abs(dy) < 10) return;
-        // Vertical movement = scroll, cancel drag
-        if (Math.abs(dy) > Math.abs(dx)) {
-            touchDrag = null;
-            return;
-        }
-        touchDrag.active = true;
-        var clone = document.createElement("div");
-        clone.className = "drag-clone";
-        clone.textContent = touchDrag.label;
-        document.body.appendChild(clone);
-        touchDrag.clone = clone;
-    }
-
-    e.preventDefault();
-    touchDrag.clone.style.left = touch.clientX + "px";
-    touchDrag.clone.style.top = touch.clientY + "px";
-
-    // Detect drop target under finger
-    touchDrag.clone.style.display = "none";
-    var el = document.elementFromPoint(touch.clientX, touch.clientY);
-    touchDrag.clone.style.display = "";
-
-    var target = el ? (el.closest(".dial-thumb") || el.closest(".library-grid")) : null;
-    if (touchDrag.currentTarget !== target) {
-        if (touchDrag.currentTarget) touchDrag.currentTarget.classList.remove("drop-target");
-        if (target) target.classList.add("drop-target");
-        touchDrag.currentTarget = target;
-    }
-}, { passive: false });
-
-document.addEventListener("touchend", function () {
-    if (!touchDrag) return;
-    if (!touchDrag.active) {
-        touchDrag = null;
-        return;
-    }
-
-    var target = touchDrag.currentTarget;
-    if (target) {
-        target.classList.remove("drop-target");
-        if (target.classList.contains("dial-thumb")) {
-            var pos = parseInt(target.dataset.position);
-            if (touchDrag.sourcePosition !== null && touchDrag.sourcePosition !== undefined) {
-                moveStation(touchDrag.sourcePosition, pos, touchDrag.stationId);
-            } else {
-                assignStation(pos, touchDrag.stationId);
-            }
-        } else if (target.classList.contains("library-grid") &&
-                   touchDrag.sourcePosition !== null && touchDrag.sourcePosition !== undefined) {
-            clearPosition(touchDrag.sourcePosition);
-        }
-    }
-
-    if (touchDrag.clone) touchDrag.clone.remove();
-    touchDrag = null;
-    touchDragJustEnded = true;
-    setTimeout(function () { touchDragJustEnded = false; }, 100);
-});
-
 // --- Event listeners ---
 
 var searchTimer = null;
@@ -478,7 +440,6 @@ document.getElementById("search-query").addEventListener("input", function () {
     searchTimer = setTimeout(function () { doSearch(query); }, 350);
 });
 
-
 document.getElementById("add-url-form").addEventListener("submit", async function (e) {
     e.preventDefault();
     var nameInput = document.getElementById("add-name");
@@ -493,7 +454,7 @@ document.getElementById("add-url-form").addEventListener("submit", async functio
     await loadLibrary();
 });
 
-// Library grid as drop target (drag back from dial = clear position)
+// Library grid as desktop drop target (drag from dial = clear position)
 var libraryGrid = document.getElementById("library-list");
 libraryGrid.addEventListener("dragover", function (e) {
     if (dragData && dragData.sourcePosition !== null) {
@@ -512,12 +473,10 @@ libraryGrid.addEventListener("drop", function (e) {
     }
 });
 
-// Deselect when clicking outside
+// Deselect when clicking outside interactive elements
 document.addEventListener("click", function (e) {
     if (!e.target.closest(".library-item") && !e.target.closest(".dial-thumb")) {
-        selectedStationId = null;
-        document.querySelectorAll(".library-item.selected")
-            .forEach(function (el) { el.classList.remove("selected"); });
+        clearSelection();
     }
 });
 
@@ -559,3 +518,4 @@ function toggleListen() {
 
 Promise.all([loadLibrary(), loadDial(), loadStatus()]);
 setInterval(loadStatus, 3000);
+setInterval(function () { loadLibrary(); loadDial(); }, 10000);

@@ -8,17 +8,21 @@ echo "==> Updating system packages"
 apt-get update
 
 # --- I2S audio (Pimoroni Audio Amp SHIM / MAX98357A) ---
-echo "==> Enabling I2S audio overlay"
-if ! grep -q "^dtoverlay=hifiberry-dac" /boot/config.txt; then
-    echo "dtoverlay=hifiberry-dac" >> /boot/config.txt
-    echo "    Added hifiberry-dac overlay to /boot/config.txt"
+# Newer Raspbian uses /boot/firmware/config.txt, older uses /boot/config.txt
+BOOT_CONFIG="/boot/firmware/config.txt"
+[ -f "$BOOT_CONFIG" ] || BOOT_CONFIG="/boot/config.txt"
+
+echo "==> Enabling I2S audio overlay ($BOOT_CONFIG)"
+if ! grep -q "^dtoverlay=hifiberry-dac" "$BOOT_CONFIG"; then
+    echo "dtoverlay=hifiberry-dac" >> "$BOOT_CONFIG"
+    echo "    Added hifiberry-dac overlay"
 else
     echo "    hifiberry-dac overlay already present"
 fi
 
 # Disable onboard audio so ALSA defaults to the I2S DAC
-if ! grep -q "^dtparam=audio=off" /boot/config.txt; then
-    sed -i 's/^dtparam=audio=on/dtparam=audio=off/' /boot/config.txt
+if ! grep -q "^dtparam=audio=off" "$BOOT_CONFIG"; then
+    sed -i 's/^dtparam=audio=on/dtparam=audio=off/' "$BOOT_CONFIG"
     echo "    Disabled onboard audio"
 fi
 

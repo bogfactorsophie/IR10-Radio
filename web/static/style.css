@@ -158,12 +158,19 @@ main {
     pointer-events: none;
 }
 
-.dial-thumb.assigned:hover::after {
+.dial-thumb.assigned:hover::after,
+.dial-thumb.assigned.selected::after {
     opacity: 0.7;
 }
 
-.dial-thumb.assigned:hover {
+.dial-thumb.assigned:hover,
+.dial-thumb.assigned.selected {
     border-color: var(--text);
+}
+
+.dial-thumb.assigned.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-soft);
 }
 
 .dial-thumb.assigned img {
@@ -223,6 +230,21 @@ main {
 }
 
 .status-show:empty {
+    display: none;
+}
+
+/* --- Selection hint --- */
+
+.selection-hint {
+    text-align: center;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    min-height: 14px;
+    padding: 0.25rem 0;
+}
+
+.selection-hint:empty {
     display: none;
 }
 
@@ -488,20 +510,6 @@ main {
 .library-grid.drop-target {
     background: var(--accent-soft);
     border-radius: 4px;
-}
-
-.drag-clone {
-    position: fixed;
-    padding: 4px 10px;
-    background: var(--bg);
-    border: 1px solid var(--accent);
-    border-radius: 4px;
-    font-size: 11px;
-    color: var(--accent);
-    pointer-events: none;
-    z-index: 1000;
-    transform: translate(-50%, calc(-100% - 10px));
-    white-space: nowrap;
 }
 
 /* --- Responsive --- */

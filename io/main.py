@@ -109,10 +109,9 @@ def hardware_mode():
 
 def main():
     try:
-        import gpiozero  # noqa: F401
-
         hardware_mode()
-    except ImportError:
+    except Exception as e:
+        print(f"GPIO unavailable ({e}), entering dev mode")
         dev_mode()
 
 
