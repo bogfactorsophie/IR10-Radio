@@ -2,7 +2,7 @@
 set -e
 
 # Copy static noise into the volume (image COPY is hidden by the mount)
-cp /static.mp3 /var/lib/mpd/music/static.mp3
+cp /static.wav /var/lib/mpd/music/static.wav
 
 # Start MPD, trigger a database update, then wait for it
 exec mpd --no-daemon /etc/mpd.conf &

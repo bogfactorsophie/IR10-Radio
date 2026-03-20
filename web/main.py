@@ -143,7 +143,7 @@ def _play_dial_position(client, position):
     if station:
         client.add(station["url"])
     else:
-        client.add("static.mp3")
+        client.add("static.wav")
         client.repeat(1)
 
     client.play(0)
@@ -294,7 +294,7 @@ def get_status(client: MPDClient = Depends(get_client)):
     if state == "play":
         song = client.currentsong()
         url = song.get("file", "")
-        if url == "static.mp3":
+        if url == "static.wav":
             station = "Static"
         else:
             lib = read_library()
