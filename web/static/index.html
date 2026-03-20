@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TR10</title>
-    <link rel="stylesheet" href="/static/style.css?v=13">
+    <link rel="stylesheet" href="/static/style.css?v=14">
 </head>
 <body>
     <header>
@@ -27,27 +27,29 @@
             </div>
         </section>
 
-        <section class="library-section">
-            <h2>library</h2>
-            <div class="library-grid" id="library-list"></div>
+        <details class="library-section" id="library-section">
+            <summary><h2>library<span class="library-arrow"></span></h2></summary>
+            <div class="library-content">
+                <div class="library-grid" id="library-list"></div>
 
-            <div class="search-section">
-                <input type="text" id="search-query" placeholder="search stations"
-                       maxlength="100">
-                <div class="search-results" id="search-results"></div>
+                <div class="search-section">
+                    <input type="text" id="search-query" placeholder="search stations"
+                           maxlength="100">
+                    <div class="search-results" id="search-results"></div>
+                </div>
+
+                <details class="add-section">
+                    <summary>add by url</summary>
+                    <form id="add-url-form">
+                        <input type="text" id="add-name" placeholder="station name" required>
+                        <input type="url" id="add-url" placeholder="stream url" required>
+                        <button type="submit">add</button>
+                    </form>
+                </details>
             </div>
-
-            <details class="add-section">
-                <summary>add by url</summary>
-                <form id="add-url-form">
-                    <input type="text" id="add-name" placeholder="station name" required>
-                    <input type="url" id="add-url" placeholder="stream url" required>
-                    <button type="submit">add</button>
-                </form>
-            </details>
-        </section>
+        </details>
     </main>
 
-    <script src="/static/app.js?v=13"></script>
+    <script src="/static/app.js?v=14"></script>
 </body>
 </html>

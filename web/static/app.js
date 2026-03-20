@@ -1,7 +1,7 @@
 var POSITIONS = 12;
 var DIAL_RADIUS = 80;
 var NUMBER_RADIUS = 100;
-var THUMB_RADIUS = 132;
+var MARKER_RADIUS = 132;
 
 var library = [];
 var libraryUrls = new Set();
@@ -65,7 +65,7 @@ function clearSelection() {
     selection = null;
     document.querySelectorAll(".library-item.selected")
         .forEach(function (el) { el.classList.remove("selected"); });
-    document.querySelectorAll(".dial-thumb.selected")
+    document.querySelectorAll(".dial-marker.selected")
         .forEach(function (el) { el.classList.remove("selected"); });
     updateHint("");
 }
@@ -90,7 +90,7 @@ function selectDialPosition(position, stationId) {
     }
     clearSelection();
     selection = { stationId: stationId, sourcePosition: position };
-    document.querySelectorAll(".dial-thumb").forEach(function (el) {
+    document.querySelectorAll(".dial-marker").forEach(function (el) {
         el.classList.toggle("selected", parseInt(el.dataset.position) === position);
     });
     updateHint("tap a preset to move, or tap again to clear");
@@ -105,11 +105,11 @@ function updateHint(text) {
 
 function renderDial() {
     var container = document.getElementById("dial-container");
-    container.querySelectorAll(".dial-tick, .dial-number, .dial-thumb, .standby-dot")
+    container.querySelectorAll(".dial-tick, .dial-number, .dial-marker, .standby-dot")
         .forEach(function (el) { el.remove(); });
 
     for (var i = 0; i < POSITIONS; i++) {
-        var angle = i * 30;
+        var angle = i * 360 / POSITIONS;
 
         var tick = document.createElement("div");
         tick.className = "dial-tick";
@@ -132,21 +132,21 @@ function renderDial() {
             num.textContent = String(i);
             container.appendChild(num);
 
-            var thumb = createThumb(i, angle);
-            container.appendChild(thumb);
+            var marker = createMarker(i, angle);
+            container.appendChild(marker);
         }
     }
 }
 
-function createThumb(position, angle) {
+function createMarker(position, angle) {
     var station = dial[String(position)];
-    var thumb = document.createElement("div");
-    thumb.className = "dial-thumb";
-    thumb.dataset.position = position;
-    placeElement(thumb, angle, THUMB_RADIUS);
+    var marker = document.createElement("div");
+    marker.className = "dial-marker";
+    marker.dataset.position = position;
+    placeElement(marker, angle, MARKER_RADIUS);
 
     if (station) {
-        thumb.classList.add("assigned");
+        marker.classList.add("assigned");
         if (station.image) {
             var img = document.createElement("img");
             img.src = station.image;
@@ -154,25 +154,25 @@ function createThumb(position, angle) {
             img.onerror = function () {
                 img.remove();
                 var letter = document.createElement("span");
-                letter.className = "thumb-letter";
+                letter.className = "marker-letter";
                 letter.textContent = station.name[0];
-                thumb.appendChild(letter);
+                marker.appendChild(letter);
             };
-            thumb.appendChild(img);
+            marker.appendChild(img);
         } else {
             var letter = document.createElement("span");
-            letter.className = "thumb-letter";
+            letter.className = "marker-letter";
             letter.textContent = station.name[0];
-            thumb.appendChild(letter);
+            marker.appendChild(letter);
         }
-        thumb.title = station.name;
+        marker.title = station.name;
 
-        // Tap: if something is selected, act on it; otherwise select this thumb
-        thumb.onclick = function (e) {
+        // Tap: if something is selected, act on it; otherwise select this marker
+        marker.onclick = function (e) {
             e.stopPropagation();
             if (selection) {
                 if (selection.sourcePosition === position) {
-                    // Tapped the same selected thumb — clear it
+                    // Tapped the same selected marker — clear it
                     clearPosition(position);
                     clearSelection();
                 } else if (selection.sourcePosition !== null) {
@@ -190,19 +190,19 @@ function createThumb(position, angle) {
         };
 
         // Desktop drag (HTML5 DnD)
-        thumb.draggable = true;
-        thumb.addEventListener("dragstart", function (e) {
+        marker.draggable = true;
+        marker.addEventListener("dragstart", function (e) {
             dragData = { stationId: station.id, sourcePosition: position };
             e.dataTransfer.setData("text/plain", station.id);
-            thumb.classList.add("dragging");
+            marker.classList.add("dragging");
         });
-        thumb.addEventListener("dragend", function () {
-            thumb.classList.remove("dragging");
+        marker.addEventListener("dragend", function () {
+            marker.classList.remove("dragging");
             dragData = null;
         });
     } else {
-        thumb.classList.add("empty");
-        thumb.onclick = function (e) {
+        marker.classList.add("empty");
+        marker.onclick = function (e) {
             e.stopPropagation();
             if (selection) {
                 if (selection.sourcePosition !== null) {
@@ -218,16 +218,16 @@ function createThumb(position, angle) {
     }
 
     // Desktop drop target
-    thumb.addEventListener("dragover", function (e) {
+    marker.addEventListener("dragover", function (e) {
         e.preventDefault();
-        thumb.classList.add("drop-target");
+        marker.classList.add("drop-target");
     });
-    thumb.addEventListener("dragleave", function () {
-        thumb.classList.remove("drop-target");
+    marker.addEventListener("dragleave", function () {
+        marker.classList.remove("drop-target");
     });
-    thumb.addEventListener("drop", function (e) {
+    marker.addEventListener("drop", function (e) {
         e.preventDefault();
-        thumb.classList.remove("drop-target");
+        marker.classList.remove("drop-target");
         if (dragData) {
             if (dragData.sourcePosition !== null && dragData.sourcePosition !== undefined) {
                 moveStation(dragData.sourcePosition, position, dragData.stationId);
@@ -237,12 +237,12 @@ function createThumb(position, angle) {
         }
     });
 
-    return thumb;
+    return marker;
 }
 
 function updatePointer() {
     var pointer = document.getElementById("dial-pointer");
-    var angle = (radioStatus.dial_position || 0) * 30;
+    var angle = (radioStatus.dial_position || 0) * 360 / POSITIONS;
     pointer.style.transform = "rotate(" + angle + "deg)";
 }
 
@@ -475,7 +475,7 @@ libraryGrid.addEventListener("drop", function (e) {
 
 // Deselect when clicking outside interactive elements
 document.addEventListener("click", function (e) {
-    if (!e.target.closest(".library-item") && !e.target.closest(".dial-thumb")) {
+    if (!e.target.closest(".library-item") && !e.target.closest(".dial-marker")) {
         clearSelection();
     }
 });

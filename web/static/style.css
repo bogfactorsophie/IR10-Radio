@@ -114,7 +114,7 @@ main {
     font-weight: 500;
 }
 
-.dial-thumb {
+.dial-marker {
     position: absolute;
     width: 28px;
     height: 28px;
@@ -126,21 +126,21 @@ main {
     transition: border-color 0.15s, opacity 0.15s;
 }
 
-.dial-thumb img {
+.dial-marker img {
     border-radius: 50%;
 }
 
-.dial-thumb.assigned {
+.dial-marker.assigned {
     background: var(--surface);
     border: 1.5px solid var(--dial-ring);
     cursor: grab;
 }
 
-.dial-thumb.assigned:active {
+.dial-marker.assigned:active {
     cursor: grabbing;
 }
 
-.dial-thumb.assigned::after {
+.dial-marker.assigned::after {
     content: '\00d7';
     position: absolute;
     top: -4px;
@@ -158,46 +158,46 @@ main {
     pointer-events: none;
 }
 
-.dial-thumb.assigned:hover::after,
-.dial-thumb.assigned.selected::after {
+.dial-marker.assigned:hover::after,
+.dial-marker.assigned.selected::after {
     opacity: 0.7;
 }
 
-.dial-thumb.assigned:hover,
-.dial-thumb.assigned.selected {
+.dial-marker.assigned:hover,
+.dial-marker.assigned.selected {
     border-color: var(--text);
 }
 
-.dial-thumb.assigned.selected {
+.dial-marker.assigned.selected {
     border-color: var(--accent);
     box-shadow: 0 0 0 2px var(--accent-soft);
 }
 
-.dial-thumb.assigned img {
+.dial-marker.assigned img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.dial-thumb .thumb-letter {
+.dial-marker .marker-letter {
     font-size: 10px;
     font-weight: 500;
     color: var(--text);
 }
 
-.dial-thumb.empty {
+.dial-marker.empty {
     border: 1.5px dashed var(--dial-ring);
     opacity: 0.4;
     background: transparent;
 }
 
-.dial-thumb.empty:hover,
-.dial-thumb.empty.drop-target {
+.dial-marker.empty:hover,
+.dial-marker.empty.drop-target {
     opacity: 0.8;
     border-color: var(--accent);
 }
 
-.dial-thumb.drop-target {
+.dial-marker.drop-target {
     border-style: solid;
     background: var(--accent-soft);
 }
@@ -283,13 +283,43 @@ main {
     padding-top: 1rem;
 }
 
+.library-section > summary {
+    list-style: none;
+    cursor: pointer;
+}
+
+.library-section > summary::-webkit-details-marker {
+    display: none;
+}
+
 .library-section h2 {
     font-size: 10px;
     font-weight: 400;
     letter-spacing: 0.25em;
     text-transform: lowercase;
     color: var(--text-dim);
+    margin-bottom: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.library-section[open] h2 {
     margin-bottom: 0.75rem;
+}
+
+.library-arrow {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-left: 3.5px solid transparent;
+    border-right: 3.5px solid transparent;
+    border-top: 5px solid var(--text-dim);
+    transition: transform 0.2s;
+}
+
+.library-section[open] .library-arrow {
+    transform: rotate(180deg);
 }
 
 .library-grid {
