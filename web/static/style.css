@@ -1,0 +1,530 @@
+:root {
+    --bg: #f2efe9;
+    --surface: #eae6e0;
+    --dial-bg: #e4dfd8;
+    --dial-ring: #c8c3bb;
+    --text: #78736d;
+    --text-dim: #a8a39c;
+    --accent: #c26040;
+    --accent-soft: rgba(194, 96, 64, 0.12);
+    --font: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 300;
+    letter-spacing: 0.03em;
+    -webkit-font-smoothing: antialiased;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 1rem 0;
+    position: relative;
+}
+
+.brand {
+    font-size: 16px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+}
+
+main {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 1rem 2rem;
+}
+
+/* --- Dial --- */
+
+.dial-section {
+    padding: 0.25rem 0 0.75rem;
+}
+
+.dial-container {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    margin: 0 auto;
+}
+
+.dial-face {
+    position: absolute;
+    width: 160px;
+    height: 160px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: var(--dial-bg);
+    border: 2px solid var(--dial-ring);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.dial-pointer {
+    position: absolute;
+    width: 2px;
+    height: 40%;
+    bottom: 50%;
+    left: calc(50% - 1px);
+    background: var(--text);
+    transform-origin: bottom center;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 1px 1px 0 0;
+}
+
+.dial-center {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: var(--dial-ring);
+    border: 1px solid var(--surface);
+}
+
+.dial-tick {
+    position: absolute;
+    width: 1px;
+    height: 8px;
+    background: var(--dial-ring);
+}
+
+.dial-number {
+    position: absolute;
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text-dim);
+    line-height: 1;
+    user-select: none;
+}
+
+.dial-number.active {
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.dial-marker {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color 0.15s, opacity 0.15s;
+}
+
+.dial-marker img {
+    border-radius: 50%;
+}
+
+.dial-marker.assigned {
+    background: var(--surface);
+    border: 1.5px solid var(--dial-ring);
+    cursor: grab;
+}
+
+.dial-marker.assigned:active {
+    cursor: grabbing;
+}
+
+.dial-marker.assigned:hover,
+.dial-marker.assigned.selected {
+    border-color: var(--text);
+}
+
+.dial-marker.assigned.selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.dial-marker.assigned img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.dial-marker .marker-letter {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.dial-marker.empty {
+    border: 1.5px dashed var(--dial-ring);
+    opacity: 0.4;
+    background: transparent;
+}
+
+.dial-marker.empty:hover,
+.dial-marker.empty.drop-target {
+    opacity: 0.8;
+    border-color: var(--accent);
+}
+
+.dial-marker.drop-target {
+    border-style: solid;
+    background: var(--accent-soft);
+}
+
+/* --- Status --- */
+
+.status {
+    text-align: center;
+    padding: 0.5rem 0 0.25rem;
+    min-height: 16px;
+}
+
+.status:empty {
+    display: none;
+}
+
+.status-station {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--text);
+}
+
+.status-show {
+    font-size: 11px;
+    color: var(--text-dim);
+}
+
+.status-show::before {
+    content: ' \2014 ';
+}
+
+.status-show:empty {
+    display: none;
+}
+
+/* --- Selection hint --- */
+
+.selection-hint {
+    text-align: center;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+    min-height: 14px;
+    padding: 0.25rem 0;
+}
+
+.selection-hint:empty {
+    display: none;
+}
+
+/* --- Listen --- */
+
+.listen-btn {
+    position: absolute;
+    right: 1rem;
+    padding: 4px 10px;
+    border: 1px solid var(--dial-ring);
+    border-radius: 4px;
+    background: transparent;
+    font-family: var(--font);
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.listen-btn:hover {
+    border-color: var(--text);
+    color: var(--text);
+}
+
+.listen-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+/* --- Library --- */
+
+.library-section {
+    border-top: 1px solid var(--surface);
+    padding-top: 1rem;
+}
+
+.library-section > summary {
+    list-style: none;
+    cursor: pointer;
+}
+
+.library-section > summary::-webkit-details-marker {
+    display: none;
+}
+
+.library-section h2 {
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.25em;
+    text-transform: lowercase;
+    color: var(--text-dim);
+    margin-bottom: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.library-section[open] h2 {
+    margin-bottom: 0.75rem;
+}
+
+.library-arrow {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-left: 3.5px solid transparent;
+    border-right: 3.5px solid transparent;
+    border-top: 5px solid var(--text-dim);
+    transition: transform 0.2s;
+}
+
+.library-section[open] .library-arrow {
+    transform: rotate(180deg);
+}
+
+.library-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 1rem;
+    min-height: 20px;
+}
+
+.library-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: var(--surface);
+    border-radius: 4px;
+    cursor: grab;
+    user-select: none;
+    transition: background 0.15s, box-shadow 0.15s;
+    font-size: 11px;
+    color: var(--text);
+}
+
+.library-item:hover {
+    background: var(--dial-bg);
+}
+
+.library-item.selected {
+    box-shadow: 0 0 0 1.5px var(--accent);
+    background: var(--accent-soft);
+}
+
+.library-item.dragging {
+    opacity: 0.5;
+}
+
+.library-item .remove {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0 2px;
+    font-family: var(--font);
+}
+
+.library-item .remove:hover {
+    color: var(--accent);
+}
+
+/* --- Search --- */
+
+.search-section {
+    margin-bottom: 0.75rem;
+}
+
+.search-section input,
+.add-section input {
+    padding: 6px 10px;
+    border: 1px solid var(--surface);
+    border-radius: 4px;
+    background: var(--bg);
+    font-family: var(--font);
+    font-size: 11px;
+    font-weight: 300;
+    color: var(--text);
+    outline: none;
+}
+
+.search-section input {
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+.add-section input {
+    flex: 1;
+}
+
+.search-section input:focus,
+.add-section input:focus {
+    border-color: var(--dial-ring);
+}
+
+.search-section button,
+.add-section button {
+    padding: 6px 12px;
+    border: 1px solid var(--surface);
+    border-radius: 4px;
+    background: var(--surface);
+    font-family: var(--font);
+    font-size: 11px;
+    font-weight: 300;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.search-section button:hover,
+.add-section button:hover {
+    background: var(--dial-bg);
+}
+
+.search-results {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.search-result {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    background: var(--surface);
+    border-radius: 4px;
+    font-size: 11px;
+}
+
+.result-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.result-name {
+    color: var(--text);
+}
+
+.result-detail {
+    color: var(--text-dim);
+    font-size: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.search-result button {
+    padding: 3px 8px;
+    border: 1px solid var(--dial-ring);
+    border-radius: 3px;
+    background: transparent;
+    font-family: var(--font);
+    font-size: 10px;
+    font-weight: 300;
+    color: var(--text);
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-left: 8px;
+}
+
+.search-result button:hover:not(:disabled) {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.search-result button:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+/* --- Add by URL --- */
+
+.add-section {
+    margin-top: 0.5rem;
+}
+
+.add-section summary {
+    font-size: 10px;
+    color: var(--text-dim);
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    list-style: none;
+}
+
+.add-section summary::-webkit-details-marker {
+    display: none;
+}
+
+.add-section summary::before {
+    content: '+ ';
+}
+
+.add-section form {
+    display: flex;
+    gap: 6px;
+    margin-top: 0.5rem;
+}
+
+.empty-message {
+    color: var(--text-dim);
+    font-size: 11px;
+}
+
+/* --- Standby dot --- */
+
+.standby-dot {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.5;
+}
+
+/* --- On-dial / drag states --- */
+
+.library-item.on-dial {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.library-item.on-dial:hover {
+    opacity: 0.5;
+    background: var(--surface);
+}
+
+.library-grid.drop-target {
+    background: var(--accent-soft);
+    border-radius: 4px;
+}
+
+/* --- Responsive --- */
+
+@media (max-width: 340px) {
+    .dial-container {
+        transform: scale(0.85);
+        transform-origin: top center;
+        margin-bottom: -25px;
+    }
+}

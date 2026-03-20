@@ -101,11 +101,21 @@ def migrate_from_stations():
 @app.on_event("startup")
 def startup_sync():
     global current_volume
+    import time
 
     migrate_from_stations()
 
-    client_gen = get_client()
-    client = next(client_gen)
+    # Wait for MPD to be ready
+    for attempt in range(30):
+        try:
+            client_gen = get_client()
+            client = next(client_gen)
+            break
+        except Exception:
+            time.sleep(1)
+    else:
+        return
+
     try:
         client.clear()
         client.setvol(current_volume)
@@ -133,7 +143,7 @@ def _play_dial_position(client, position):
     if station:
         client.add(station["url"])
     else:
-        client.add("static.mp3")
+        client.add("static.wav")
         client.repeat(1)
 
     client.play(0)
@@ -214,7 +224,9 @@ def get_dial():
 
 
 @app.put("/dial/{position}")
-def assign_dial(position: int, body: DialAssign):
+def assign_dial(
+    position: int, body: DialAssign, client: MPDClient = Depends(get_client)
+):
     if position < 1 or position > DIAL_SLOTS:
         raise HTTPException(status_code=400, detail="Position must be 1-11")
     station = get_station_by_id(body.station_id)
@@ -223,16 +235,20 @@ def assign_dial(position: int, body: DialAssign):
     dial = read_dial()
     dial[str(position)] = body.station_id
     write_dial(dial)
+    if position == current_dial_position:
+        _play_dial_position(client, position)
     return {"status": "assigned", "position": position, "station": station}
 
 
 @app.delete("/dial/{position}")
-def clear_dial(position: int):
+def clear_dial(position: int, client: MPDClient = Depends(get_client)):
     if position < 1 or position > DIAL_SLOTS:
         raise HTTPException(status_code=400, detail="Position must be 1-11")
     dial = read_dial()
     dial[str(position)] = None
     write_dial(dial)
+    if position == current_dial_position:
+        _play_dial_position(client, position)
     return {"status": "cleared", "position": position}
 
 
@@ -278,7 +294,7 @@ def get_status(client: MPDClient = Depends(get_client)):
     if state == "play":
         song = client.currentsong()
         url = song.get("file", "")
-        if url == "static.mp3":
+        if url == "static.wav":
             station = "Static"
         else:
             lib = read_library()

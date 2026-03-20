@@ -5,7 +5,7 @@ RUN apk add --no-cache mpd mpc lame
 RUN mkdir -p /var/lib/mpd/music /var/lib/mpd/playlists /var/log/mpd && \
     chown -R mpd:audio /var/lib/mpd /var/log/mpd
 
-COPY static.mp3 /var/lib/mpd/music/static.mp3
+COPY vinyl-crackling-11_150bpm.wav /static.wav
 COPY mpd.conf /etc/mpd.conf
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

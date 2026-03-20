@@ -20,19 +20,23 @@ fi
 PI_HOST="${1:?Usage: ./deploy.sh <pi-host> [service ...]}"
 shift
 if [[ $# -eq 0 ]]; then
-    SERVICES=(streamer web)
+    SERVICES=(streamer web io)
 else
     SERVICES=("$@")
 fi
 
 PLATFORM="linux/arm/v7"
+# io service needs arm64 for lgpio native extension
+IO_PLATFORM="linux/arm64"
 PROJECT="radio"
 
 # Build for ARM using buildx
 for svc in "${SERVICES[@]}"; do
-    echo "==> Building $svc for $PLATFORM"
+    plat="$PLATFORM"
+    [[ "$svc" == "io" ]] && plat="$IO_PLATFORM"
+    echo "==> Building $svc for $plat"
     docker buildx build \
-        --platform "$PLATFORM" \
+        --platform "$plat" \
         --tag "${PROJECT}-${svc}:latest" \
         --load \
         "./$svc"
